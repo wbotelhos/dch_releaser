@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# DCH Releaser - A Debian's changelog bumper.
+#
+# The MIT License
+#
+# @author  : Washington Botelho
+# @doc     : http://wbotelhos.com/dch_releaser
+# @version : 0.1.0
+
+GRAY='\033[0;36m'
+GREEN='\033[0;32m'
+NO_COLOR='\033[1;0m'
+RED='\033[1;31m'
+YELLOW='\033[4;33m'
+
+AUTHOR=`whoami`@`hostname`
+CHANGELOG_PATH='debian/changelog'
+CONTROL_PATH='debian/control'
+DISTRIBUTION='precise'
+RELEASE=$1
+REMOTE_NAME='origin'
+URGENCY=low
+
+if [[ "${RELEASE}" != 'major' && "${RELEASE}" != 'minor' && "${RELEASE}" != 'bugfix' ]]; then
+  echo -e "${RED}Usage:${GRAY}${0} (major|minor|bugfix)${NO_COLOR}\n"
+  exit 1
+fi
+
+if [ ! -f $CHANGELOG_PATH ]; then
+  touch $CHANGELOG_PATH
+  echo -e "\n${YELLOW}The file (${CHANGELOG_PATH}) missing and was created.${NO_COLOR}\n"
+
+  CURRENT_VERSION='0.0.0'
+  MAJOR=0
+  COMPATIBLE=0
+  BUGFIX=0
+else
+  CURRENT_VERSION=`cat ${CHANGELOG_PATH} | head -1 | sed -r 's/.*\((.*)\).*/\1/g'`
+  NUMBERS=(${CURRENT_VERSION//./ })
+  MAJOR=${NUMBERS[0]}
+  COMPATIBLE=${NUMBERS[1]}
+  BUGFIX=${NUMBERS[2]}
+fi
+
+if [ ! -f $CONTROL_PATH ]; then
+  echo -e "\n${RED}The file (${CONTROL_PATH}) missing. Release aborted!${NO_COLOR}\n"
+  exit 0
+fi
+
+NAME=`cat ${CONTROL_PATH} | sed -rn 's/Source: (.*)/\1/p'`
+
+git remote update
+
+UNPULLED_COUNT=`git rev-list HEAD...${REMOTE_NAME}/master --count`
+
+if [ $UNPULLED_COUNT != '0' ]; then
+  echo -e "${RED}You must to pull the following remote changes:${NO_COLOR}\n"
+  echo `git rev-list HEAD...${REMOTE_NAME}/master --format="  * %s"`
+  exit 0
+fi
+
+echo -e "\n${GRAY}Current local version ${CURRENT_VERSION}${NO_COLOR}"
+
+COMMITS=`git log ${CURRENT_VERSION}..HEAD --format="  * %h %s" 2> /dev/null`
+
+if [ -z "${COMMITS}" ];then
+  echo -e "\n${RED}There is no commit since last version ${CURRENT_VERSION}. Release aborted!${NO_COLOR}"
+  exit 0
+fi
+
+if [ "${1}" == 'major' ];then
+  MAJOR=`expr ${MAJOR} + 1`
+elif [ "${1}" == 'minor' ]; then
+  COMPATIBLE=`expr ${COMPATIBLE} + 1`
+else
+  BUGFIX=`expr ${BUGFIX} + 1`
+fi
+
+VERSION="${MAJOR}.${COMPATIBLE}.${BUGFIX}"
+
+echo -e "\n${GRAY}Commits to release ${VERSION}:${NO_COLOR}\n\n${COMMITS}"
+
+MESSAGE="${NAME} (${VERSION}) ${DISTRIBUTION}; urgency=${URGENCY}
+
+${COMMITS}
+
+ -- `whoami` <${AUTHOR}>  `date -R`
+"
+
+IFS=''
+
+echo $MESSAGE | cat - $CHANGELOG_PATH > /tmp/changelog && mv /tmp/changelog $CHANGELOG_PATH
+
+git add $CHANGELOG_PATH
+git commit -m "Bump to version ${VERSION}"
+git tag -a "${VERSION}" -m "${COMMITS}"
+git push && git push --tags
+
+echo -e "\n${GREEN}Bumped ${NAME} from ${CURRENT_VERSION} to ${VERSION}!${NO_COLOR}\n"

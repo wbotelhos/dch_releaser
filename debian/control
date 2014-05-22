@@ -1,0 +1,17 @@
+Build-Depends: debhelper
+Homepage: http://wbotelhos.com
+Maintainer: wbotelhos
+Priority: optional
+Section: web
+Source: dch_releaser
+Standards-Version: 0.1.0
+XS-Vcs-browser:
+XS-Vcs-git: git@github.com:wbotelhos/dch_releaser.git
+
+Architecture: all
+Conflicts:
+Depends:
+Description: DCH Releaser is a script to bump Debian's changelog version.
+Package: dch_releaser
+Pre-Depends:
+Suggests:

@@ -1,0 +1,37 @@
+#!/usr/bin/make -f
+
+BUILD_DIR := debian/dch_releaser
+PKG_INSTALL_DIR := r7/dch_releaser
+SHELL = bash
+
+.PHONY: build clean binary-indep binary
+
+build:
+	dh_testdir
+
+	mkdir -p           ${BUILD_DIR}/${PKG_INSTALL_DIR}
+
+	cp -rp dch_release ${BUILD_DIR}/${PKG_INSTALL_DIR}
+
+binary: binary-indep
+
+binary-indep:
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs
+	dh_installdocs
+	dh_installexamples
+	dh_install
+	dh_link
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -rf ${BUILD_DIR}
+	dh_clean

@@ -52,11 +52,13 @@ NAME=`cat ${CONTROL_PATH} | sed -rn 's/Source: (.*)/\1/p'`
 
 git remote update
 
-UNPULLED_COUNT=`git rev-list HEAD...${REMOTE_NAME}/master --count`
+IFS=''
 
-if [ $UNPULLED_COUNT != '0' ]; then
+UNPULLED_COMMITS=`git log HEAD..${REMOTE_NAME}/master --oneline --format="  * %h %s"`
+
+if [ "${UNPULLED_COMMITS}" != '' ]; then
   echo -e "${RED}You must to pull the following remote changes:${NO_COLOR}\n"
-  echo `git rev-list HEAD...${REMOTE_NAME}/master --format="  * %s"`
+  echo $UNPULLED_COMMITS
   exit 0
 fi
 
@@ -87,8 +89,6 @@ ${COMMITS}
 
  -- `whoami` <${AUTHOR}>  `date -R`
 "
-
-IFS=''
 
 echo $MESSAGE | cat - $CHANGELOG_PATH > /tmp/changelog && mv /tmp/changelog $CHANGELOG_PATH
 

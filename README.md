@@ -18,9 +18,9 @@
 ## Options
 
 ```bash
-major  : increments the major version.
-minor  : increments the minor version.
-bugfix : increments the bugfix version.
+major : API changes which are not backward-compatible.
+minor : Releases which add new, but backward-compatible, API features.
+patch : Minor changes and bug fixes which do not change the software's API.
 ```
 
 Check [Software Versioning](http://en.wikipedia.org/wiki/Software_versioning) for more information about nomenclature.

@@ -22,8 +22,8 @@ RELEASE=$1
 REMOTE_NAME='origin'
 URGENCY=low
 
-if [[ "${RELEASE}" != 'major' && "${RELEASE}" != 'minor' && "${RELEASE}" != 'bugfix' ]]; then
-  echo -e "${RED}Usage:${GRAY}${0} (major|minor|bugfix)${NO_COLOR}\n"
+if [[ "${RELEASE}" != 'major' && "${RELEASE}" != 'minor' && "${RELEASE}" != 'patch' ]]; then
+  echo -e "${RED}Usage:${GRAY}${0} (major|minor|patch)${NO_COLOR}\n"
   exit 1
 fi
 
@@ -33,14 +33,14 @@ if [ ! -f $CHANGELOG_PATH ]; then
 
   CURRENT_VERSION='0.0.0'
   MAJOR=0
-  COMPATIBLE=0
-  BUGFIX=0
+  MINOR=0
+  PATCH=0
 else
   CURRENT_VERSION=`cat ${CHANGELOG_PATH} | head -1 | sed -r 's/.*\((.*)\).*/\1/g'`
   NUMBERS=(${CURRENT_VERSION//./ })
   MAJOR=${NUMBERS[0]}
-  COMPATIBLE=${NUMBERS[1]}
-  BUGFIX=${NUMBERS[2]}
+  MINOR=${NUMBERS[1]}
+  PATCH=${NUMBERS[2]}
 fi
 
 if [ ! -f $CONTROL_PATH ]; then
@@ -73,13 +73,16 @@ fi
 
 if [ "${1}" == 'major' ];then
   MAJOR=`expr ${MAJOR} + 1`
+  MINOR=0
+  PATCH=0
 elif [ "${1}" == 'minor' ]; then
-  COMPATIBLE=`expr ${COMPATIBLE} + 1`
+  MINOR=`expr ${MINOR} + 1`
+  PATCH=0
 else
-  BUGFIX=`expr ${BUGFIX} + 1`
+  PATCH=`expr ${PATCH} + 1`
 fi
 
-VERSION="${MAJOR}.${COMPATIBLE}.${BUGFIX}"
+VERSION="${MAJOR}.${MINOR}.${PATCH}"
 
 echo -e "\n${GRAY}Commits to release ${VERSION}:${NO_COLOR}\n\n${COMMITS}"
 
@@ -92,9 +95,9 @@ ${COMMITS}
 
 echo $MESSAGE | cat - $CHANGELOG_PATH > /tmp/changelog && mv /tmp/changelog $CHANGELOG_PATH
 
-git add $CHANGELOG_PATH
-git commit -m "Bump to version ${VERSION}"
-git tag -a "${VERSION}" -m "${COMMITS}"
-git push && git push --tags
+# git add $CHANGELOG_PATH
+# git commit -m "Bump to version ${VERSION}"
+# git tag -a "${VERSION}" -m "${COMMITS}"
+# git push && git push --tags
 
 echo -e "\n${GREEN}Bumped ${NAME} from ${CURRENT_VERSION} to ${VERSION}!${NO_COLOR}\n"

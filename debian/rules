@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 BUILD_DIR := debian/dch_releaser
-PKG_INSTALL_DIR := r7/dch_releaser
+PKG_INSTALL_DIR := dch_releaser
 SHELL = bash
 
 .PHONY: build clean binary-indep binary

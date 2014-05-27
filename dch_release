@@ -95,9 +95,9 @@ ${COMMITS}
 
 echo $MESSAGE | cat - $CHANGELOG_PATH > /tmp/changelog && mv /tmp/changelog $CHANGELOG_PATH
 
-# git add $CHANGELOG_PATH
-# git commit -m "Bump to version ${VERSION}"
-# git tag -a "${VERSION}" -m "${COMMITS}"
-# git push && git push --tags
+git add $CHANGELOG_PATH
+git commit -m "Bump to version ${VERSION}"
+git tag -a "${VERSION}" -m "${COMMITS}"
+git push && git push --tags
 
 echo -e "\n${GREEN}Bumped ${NAME} from ${CURRENT_VERSION} to ${VERSION}!${NO_COLOR}\n"

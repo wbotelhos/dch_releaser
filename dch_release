@@ -6,7 +6,7 @@
 #
 # @author  : Washington Botelho
 # @doc     : http://wbotelhos.com/dch_releaser
-# @version : 0.1.0
+# @version : 0.1.1
 
 GRAY='\033[0;36m'
 GREEN='\033[0;32m'

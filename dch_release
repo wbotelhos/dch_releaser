@@ -6,7 +6,7 @@
 #
 # @author  : Washington Botelho
 # @doc     : http://wbotelhos.com/dch_releaser
-# @version : 0.1.0
+# @version : 0.1.1
 
 GRAY='\033[0;36m'
 GREEN='\033[0;32m'
@@ -36,7 +36,11 @@ if [ ! -f $CHANGELOG_PATH ]; then
   MINOR=0
   PATCH=0
 else
-  CURRENT_VERSION=`cat ${CHANGELOG_PATH} | head -1 | sed -r 's/.*\((.*)\).*/\1/g'`
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    CURRENT_VERSION=`cat ${CHANGELOG_PATH} | head -1 | sed -E 's/.*\((.*)\).*/\1/g'`
+  else
+    CURRENT_VERSION=`cat ${CHANGELOG_PATH} | head -1 | sed -r 's/.*\((.*)\).*/\1/g'`
+  fi
   NUMBERS=(${CURRENT_VERSION//./ })
   MAJOR=${NUMBERS[0]}
   MINOR=${NUMBERS[1]}
@@ -48,7 +52,11 @@ if [ ! -f $CONTROL_PATH ]; then
   exit 0
 fi
 
-NAME=`cat ${CONTROL_PATH} | sed -rn 's/Source: (.*)/\1/p'`
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  NAME=`cat ${CONTROL_PATH} | sed -En 's/Source: (.*)/\1/p'`
+else
+  NAME=`cat ${CONTROL_PATH} | sed -rn 's/Source: (.*)/\1/p'`
+fi
 
 git remote update
 
@@ -86,14 +94,23 @@ VERSION="${MAJOR}.${MINOR}.${PATCH}"
 
 echo -e "\n${GRAY}Commits to release ${VERSION}:${NO_COLOR}\n\n${COMMITS}"
 
-MESSAGE="${NAME} (${VERSION}) ${DISTRIBUTION}; urgency=${URGENCY}
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  MESSAGE="${NAME} (${VERSION}) ${DISTRIBUTION}; urgency=${URGENCY}
+
+${COMMITS}
+
+ -- `whoami` <${AUTHOR}>  `date +"%a, %d %b %Y %H:%M:%S %z"`
+"
+else
+  MESSAGE="${NAME} (${VERSION}) ${DISTRIBUTION}; urgency=${URGENCY}
 
 ${COMMITS}
 
  -- `whoami` <${AUTHOR}>  `date -R`
 "
+fi
 
-echo $MESSAGE | cat - $CHANGELOG_PATH > /tmp/changelog && mv /tmp/changelog $CHANGELOG_PATH
+echo $MESSAGE | sudo cat - $CHANGELOG_PATH > /tmp/changelog && sudo  mv /tmp/changelog $CHANGELOG_PATH
 
 git add $CHANGELOG_PATH
 git commit -m "Bump to version ${VERSION}"
